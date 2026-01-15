@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Skills 官方技能库</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --card-bg: rgba(17, 24, 39, 0.8);
+            --cyan: #06b6d4;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 动态背景 */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+            animation: meshMove 20s ease-in-out infinite;
+        }
+
+        @keyframes meshMove {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.1); }
+        }
+
+        /* 网格覆盖 */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* 头部 */
+        header {
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--emerald) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.2s forwards;
+        }
+
+        /* 分类导航 */
+        .category-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.4s forwards;
+        }
+
+        .category-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .category-btn:hover,
+        .category-btn.active {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: var(--cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        /* 主容器 */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 技能卡片网格 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        /* 技能卡片 */
+        .skill-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(6, 182, 212, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--cyan);
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(6, 182, 212, 0.2);
+        }
+
+        .skill-card:hover::before {
+            opacity: 1;
+        }
+
+        .skill-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--cyan);
+        }
+
+        .skill-category {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-doc { background: rgba(6, 182, 212, 0.2); color: var(--cyan); }
+        .category-creative { background: rgba(16, 185, 129, 0.2); color: var(--emerald); }
+        .category-dev { background: rgba(245, 158, 11, 0.2); color: var(--amber); }
+        .category-other { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
+
+        .skill-command {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-command code {
+            background: rgba(6, 182, 212, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--cyan);
+        }
+
+        .skill-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-features {
+            list-style: none;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-features li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .skill-features li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--cyan);
+        }
+
+        /* 装饰元素 */
+        .decoration {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(100px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .decoration-1 {
+            top: -100px;
+            right: -100px;
+            background: rgba(6, 182, 212, 0.3);
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .decoration-2 {
+            bottom: -100px;
+            left: -100px;
+            background: rgba(16, 185, 129, 0.2);
+            animation: float 20s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 隐藏类 */
+        .hidden {
+            display: none;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        footer a {
+            color: var(--cyan);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: var(--emerald);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .category-nav {
+                gap: 0.5rem;
+            }
+
+            .category-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="grid-overlay"></div>
+    <div class="decoration decoration-1"></div>
+    <div class="decoration decoration-2"></div>
+
+    <header>
+        <h1>Claude Skills</h1>
+        <p class="subtitle">15个官方技能，扩展你的 Claude 能力边界</p>
+    </header>
+
+    <nav class="category-nav">
+        <button class="category-btn active" data-category="all">全部</button>
+        <button class="category-btn" data-category="doc">文档处理</button>
+        <button class="category-btn" data-category="creative">创意设计</button>
+        <button class="category-btn" data-category="dev">开发工具</button>
+        <button class="category-btn" data-category="other">其他</button>
+    </nav>
+
+    <main>
+        <div class="skills-grid" id="skillsGrid">
+            <!-- 文档处理类 -->
+            <div class="skill-card" data-category="doc" style="animation-delay: 0.1s">
+                <div class="skill-header">
+                    <span class="skill-name">docx</span>
+                    <span class="skill-category category-doc">文档处理</span>
+                </div>
+                <p class="skill-command">触发: <code>/docx</code></p>
+                <p class="skill-description">Word 文档的创建、编辑和分析工具，支持修订追踪和格式保留</p>
+                <ul class="skill-features">
+                    <li>自动化报告生成</li>
+                    <li>批量文档处理</li>
+                    <li>文档格式转换</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="doc" style="animation-delay: 0.15s">
+                <div class="skill-header">
+                    <span class="skill-name">pdf</span>
+                    <span class="skill-category category-doc">文档处理</span>
+                </div>
+                <p class="skill-command">触发: <code>/pdf</code></p>
+                <p class="skill-description">PDF 操作工具包，支持文本提取、合并拆分、OCR 识别</p>
+                <ul class="skill-features">
+                    <li>提取文本和表格</li>
+                    <li>PDF 合并与拆分</li>
+                    <li>扫描文档 OCR</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="doc" style="animation-delay: 0.2s">
+                <div class="skill-header">
+                    <span class="skill-name">pptx</span>
+                    <span class="skill-category category-doc">文档处理</span>
+                </div>
+                <p class="skill-command">触发: <code>/pptx</code></p>
+                <p class="skill-description">PowerPoint 演示文稿创建和编辑工具</p>
+                <ul class="skill-features">
+                    <li>幻灯片自动生成</li>
+                    <li>数据可视化演示</li>
+                    <li>模板化报告</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="doc" style="animation-delay: 0.25s">
+                <div class="skill-header">
+                    <span class="skill-name">xlsx</span>
+                    <span class="skill-category category-doc">文档处理</span>
+                </div>
+                <p class="skill-command">触发: <code>/xlsx</code></p>
+                <p class="skill-description">Excel 电子表格处理，支持公式和图表</p>
+                <ul class="skill-features">
+                    <li>数据分析和报告</li>
+                    <li>财务报表生成</li>
+                    <li>批量数据处理</li>
+                </ul>
+            </div>
+
+            <!-- 创意设计类 -->
+            <div class="skill-card" data-category="creative" style="animation-delay: 0.3s">
+                <div class="skill-header">
+                    <span class="skill-name">algorithmic-art</span>
+                    <span class="skill-category category-creative">创意设计</span>
+                </div>
+                <p class="skill-command">触发: <code>/algorithmic-art</code></p>
+                <p class="skill-description">使用 p5.js 创建算法艺术，支持种子随机性和交互式参数探索</p>
+                <ul class="skill-features">
+                    <li>生成艺术创作</li>
+                    <li>交互式视觉设计</li>
+                    <li>创意编程教学</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="creative" style="animation-delay: 0.35s">
+                <div class="skill-header">
+                    <span class="skill-name">frontend-design</span>
+                    <span class="skill-category category-creative">创意设计</span>
+                </div>
+                <p class="skill-command">触发: <code>/frontend-design</code></p>
+                <p class="skill-description">创建独特的、生产级前端界面，避免通用模板</p>
+                <ul class="skill-features">
+                    <li>Web 应用开发</li>
+                    <li>UI/UX 原型设计</li>
+                    <li>响应式布局</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="creative" style="animation-delay: 0.4s">
+                <div class="skill-header">
+                    <span class="skill-name">canvas-design</span>
+                    <span class="skill-category category-creative">创意设计</span>
+                </div>
+                <p class="skill-command">触发: <code>/canvas-design</code></p>
+                <p class="skill-description">创建美观的视觉艺术设计，支持 PNG 和 PDF 格式输出</p>
+                <ul class="skill-features">
+                    <li>海报设计</li>
+                    <li>艺术创作</li>
+                    <li>视觉设计</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="creative" style="animation-delay: 0.45s">
+                <div class="skill-header">
+                    <span class="skill-name">brand-guidelines</span>
+                    <span class="skill-category category-creative">创意设计</span>
+                </div>
+                <p class="skill-command">触发: <code>/brand-guidelines</code></p>
+                <p class="skill-description">应用 Anthropic 官方品牌颜色和排版风格</p>
+                <ul class="skill-features">
+                    <li>品牌色彩规范</li>
+                    <li>视觉格式统一</li>
+                    <li>官方设计标准</li>
+                </ul>
+            </div>
+
+            <!-- 开发工具类 -->
+            <div class="skill-card" data-category="dev" style="animation-delay: 0.5s">
+                <div class="skill-header">
+                    <span class="skill-name">skill-creator</span>
+                    <span class="skill-category category-dev">开发工具</span>
+                </div>
+                <p class="skill-command">触发: <code>/skill-creator</code></p>
+                <p class="skill-description">创建自定义技能的元工具，扩展 Claude 能力</p>
+                <ul class="skill-features">
+                    <li>技能结构设计</li>
+                    <li>最佳实践指南</li>
+                    <li>模块化开发</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="dev" style="animation-delay: 0.55s">
+                <div class="skill-header">
+                    <span class="skill-name">mcp-builder</span>
+                    <span class="skill-category category-dev">开发工具</span>
+                </div>
+                <p class="skill-command">触发: <code>/mcp-builder</code></p>
+                <p class="skill-description">MCP (Model Context Protocol) 服务器构建指南</p>
+                <ul class="skill-features">
+                    <li>外部服务集成</li>
+                    <li>API 连接</li>
+                    <li>协议开发</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="dev" style="animation-delay: 0.6s">
+                <div class="skill-header">
+                    <span class="skill-name">web-artifacts-builder</span>
+                    <span class="skill-category category-dev">开发工具</span>
+                </div>
+                <p class="skill-command">触发: <code>/web-artifacts-builder</code></p>
+                <p class="skill-description">构建复杂的 Web 构件和工具</p>
+                <ul class="skill-features">
+                    <li>交互式工具开发</li>
+                    <li>Web 原型制作</li>
+                    <li>组件库构建</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="dev" style="animation-delay: 0.65s">
+                <div class="skill-header">
+                    <span class="skill-name">webapp-testing</span>
+                    <span class="skill-category category-dev">开发工具</span>
+                </div>
+                <p class="skill-command">触发: <code>/webapp-testing</code></p>
+                <p class="skill-description">使用 Playwright 进行本地 Web 应用测试</p>
+                <ul class="skill-features">
+                    <li>功能验证</li>
+                    <li>UI 调试</li>
+                    <li>浏览器截图</li>
+                </ul>
+            </div>
+
+            <!-- 其他 -->
+            <div class="skill-card" data-category="other" style="animation-delay: 0.7s">
+                <div class="skill-header">
+                    <span class="skill-name">doc-coauthoring</span>
+                    <span class="skill-category category-other">协作</span>
+                </div>
+                <p class="skill-command">触发: <code>/doc-coauthoring</code></p>
+                <p class="skill-description">文档协作工作流指南</p>
+                <ul class="skill-features">
+                    <li>结构化写作流程</li>
+                    <li>迭代优化</li>
+                    <li>内容验证</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="other" style="animation-delay: 0.75s">
+                <div class="skill-header">
+                    <span class="skill-name">theme-factory</span>
+                    <span class="skill-category category-other">样式工具</span>
+                </div>
+                <p class="skill-command">触发: <code>/theme-factory</code></p>
+                <p class="skill-description">为文档应用预设主题或生成新主题的工具包</p>
+                <ul class="skill-features">
+                    <li>10 种预设主题</li>
+                    <li>颜色和字体管理</li>
+                    <li>样式统一应用</li>
+                </ul>
+            </div>
+
+            <div class="skill-card" data-category="other" style="animation-delay: 0.8s">
+                <div class="skill-header">
+                    <span class="skill-name">slack-gif-creator</span>
+                    <span class="skill-category category-other">媒体工具</span>
+                </div>
+                <p class="skill-command">触发: <code>/slack-gif-creator</code></p>
+                <p class="skill-description">创建优化的 Slack 动画 GIF</p>
+                <ul class="skill-features">
+                    <li>GIF 动画生成</li>
+                    <li>Slack 优化</li>
+                    <li>约束验证</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>数据来源: <a href="https://github.com/anthropics/skills" target="_blank">github.com/anthropics/skills</a></p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">更多技能: <a href="https://skillsdirectory.com" target="_blank">Skills Directory</a> (3,500+) | <a href="https://skillsmp.com" target="_blank">SkillsMP</a> (63,000+)</p>
+    </footer>
+
+    <script>
+        // 分类过滤
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const skillCards = document.querySelectorAll('.skill-card');
+
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 更新按钮状态
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const category = btn.dataset.category;
+
+                // 过滤卡片
+                skillCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.classList.remove('hidden');
+                        card.style.animation = 'fadeInUp 0.6s ease forwards';
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // 滚动触发动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        skillCards.forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
